@@ -9715,6 +9715,53 @@
       "latest": "0.1.0",
       "readme": "# @magpie-community/tools-calc\n\nExact arithmetic, unit conversion and date math, as tools [magpie](https://usemagpie.ai) offers every agent it connects. Models get arithmetic wrong (`0.1 + 0.2`, big powers, days between two dates across a DST change), so this gives them a calculator. It needs no network, no key and no dependency.\n\nInstall it from magpie's **Plugins › Discover**, or with:\n\n```sh\nmagpie plugin add @magpie-community/tools-calc\nmagpie plugin            # lists its tools\n```\n\nmagpie serves the tools on its MCP server, `/mcp/magpie/tools`, to every agent it has connected. Each tool's name starts with the plugin's short name, `calc`: `calc_eval`, `calc_convert` and `calc_date` (magpie v0.1.1260 or later; earlier versions named them `tools-calc_eval` when installed from npm).\n\n## Tools\n\n**`eval`** `{expression, places?}` evaluates an expression exactly, in fractions, with no floating point.\n\n- Operators: `+ - * / % ^` (or `**`), parentheses, and unary minus.\n- Numbers: decimals, `1e9`, `0x`/`0b`/`0o` literals, and `1_000`.\n- Functions: `abs floor ceil round trunc min max gcd lcm fact`.\n- It answers `{exact, decimal}`, plus `rounded: true` when the decimal was cut at `places` (20 by default).\n\n```\n0.1+0.2          → {\"exact\":\"3/10\",\"decimal\":\"0.3\"}\n2^128/3          → every digit, exact\n1/0              → an error: division by zero\n```\n\n**`convert`** `{value, from, to, places?}` converts a quantity exactly. `value` can be an expression, such as `3*1024`.\n\n| Kind | Units |\n|---|---|\n| Data | `bit B kB MB GB TB` (1000s), `KiB MiB GiB TiB` (1024s), `kb Mb Gb` |\n| Time | `ns us ms s min h d wk` |\n| Length | `nm um mm cm m km in ft yd mi nmi` |\n| CSS | `px pt pc` |\n| Mass | `mg g kg t oz lb` |\n| Angle | `deg turn grad` |\n| Temperature | `C F K` |\n\n```\n1 GiB → MB       → {\"exact\":\"16777216/15625\",\"decimal\":\"1073.741824\",\"unit\":\"MB\"}\n```\n\n**`date`** `{date?, add?, to?, timeZone?}` does date math on the real calendar.\n\n- `date` is ISO 8601, unix seconds or milliseconds, or `now` (the default). It answers the ISO time, weekday, ISO week, day of year and unix time.\n- `add` is a duration, such as `3d 4h`, `-90m`, `1y2mo` or ISO `P1DT2H`. Years, months and days count on the calendar, so Jan 31 + 1mo is the last day of February, and a day across a DST change is still a day.\n- `to` is a second date. The answer then also has `between`, the time from `date` (after `add`) to `to`, in days, hours, minutes, seconds and calendar years, months and days.\n- `timeZone` is an IANA zone, such as `Asia/Shanghai`. Dates with no offset are read as that zone's wall time, and the answer shows the local time. Without it, they are UTC.\n\n## Test\n\n```sh\nbun test packages/calc\n```\n\n中文：给 magpie 连接的每个 agent 提供精确计算工具：`eval` 用分数精确计算表达式，`convert` 换算数据、时间、长度、质量、角度和温度单位，`date` 按真实日历做日期加减和间隔（支持时区与夏令时）。不联网，不需要 key。\n"
     },
+    "@magpie-community/tools-goanyapi": {
+      "versions": {
+        "0.1.0": {
+          "file": "tgz/magpie-community-tools-goanyapi-0.1.0.tgz",
+          "integrity": "sha512-+fq8W/twDriPgpK7SIQfXaFN21zsPuXUz0WxW/LWqR669/iyPLGvG+mRv/1oLzBRgOgaqX7mXBV7IXhvPpBRMw==",
+          "time": "2026-10-29T14:01:45.607Z",
+          "manifest": {
+            "name": "@magpie-community/tools-goanyapi",
+            "version": "0.1.0",
+            "description": "All GoAnyAPI SEO, ads and web intelligence tools, generated from its live MCP catalog, with OAuth or API key",
+            "type": "module",
+            "main": "./index.mjs",
+            "files": [
+              "index.mjs",
+              "src",
+              "README.md",
+              "LICENSE"
+            ],
+            "license": "MIT",
+            "repository": {
+              "type": "git",
+              "url": "git+https://github.com/magpie-community/plugins.git",
+              "directory": "packages/goanyapi"
+            },
+            "magpie": {
+              "icon": "https://goanyapi.com/logo.png"
+            },
+            "keywords": [
+              "magpie",
+              "magpie-tools",
+              "opencode-plugin",
+              "mcp",
+              "seo",
+              "website-traffic",
+              "ads-intelligence",
+              "goanyapi"
+            ],
+            "scripts": {
+              "test": "bun test tests",
+              "lint": "node --check index.mjs"
+            }
+          }
+        }
+      },
+      "latest": "0.1.0",
+      "readme": "# GoAnyAPI for Magpie\n\nOfficial website: [goanyapi.com](https://goanyapi.com/)\n\nGoAnyAPI's complete, publicly advertised **read-only MCP API catalog** as Magpie tools. No API selection list is maintained in this plugin. It supports OAuth login through GoAnyAPI's remote MCP server and API-key login through its REST API.\n\n## Install\n\nUse **Plugins → Discover → Tools for agents** or:\n\n```sh\nmagpie plugin add @magpie-community/tools-goanyapi\n```\n\nSign in with **GoAnyAPI → Sign in** (OAuth, recommended):\n\n```sh\nmagpie plugin login goanyapi oauth\n```\n\nAlternatively choose **GoAnyAPI API key** or use `magpie plugin login goanyapi api`. Existing API keys can also be supplied with `GOANYAPI_API_KEY` in the Magpie gateway process or through the `apiKey` plugin option. OAuth credentials are kept in Magpie's sign-in storage, and requests use the remote `https://mcp.goanyapi.com/mcp` server; no privileged backend secret is distributed.\n\n## Connecting to agents\n\nMagpie exposes plugin tools at its local Streamable HTTP endpoint `http://127.0.0.1:3425/mcp/magpie/tools`. Add this endpoint to your agent's MCP configuration using the URL shown in Magpie's Plugins page. Installing the plugin alone does not modify an agent's configuration.\n\nAll current read-only API definitions come from the public `https://api.goanyapi.com/api/v1/mcp/catalog` JSON Schema directory, with GoAnyAPI's built-in catalog as a failover. New published APIs do **not** require a new PR or changes to this package. **Magpie captures the named tool set when its plugin host loads**; restart/reload the plugin to show newly added tools as individual names. The permanent `catalog` and `call_dynamic` tools read the live catalog at invocation time, allowing access to a newly published API without updating the plugin itself.\n\n## Authentication and credits\n\n- **OAuth**: browser consent and OAuth 2.1/PKCE through GoAnyAPI's authorization server. API calls are sent to the remote MCP server, which validates the user's token.\n- **API key**: REST requests to GoAnyAPI API endpoints using the user's API key, no backend-only secrets.\n- API calls may consume GoAnyAPI account credits. Tool discovery reads the public catalog and is free.\n- Never put API keys, access tokens, refresh tokens, or server-only secrets into public source or issues.\n\n## Development\n\n```sh\nnode --check packages/goanyapi/index.mjs\nbun scripts/check.mjs\nbun test\n```\n\nTests are in `packages/goanyapi/tests`. Authentication tests use stubs, not live user credentials.\n\nSource of truth: [GoAnyAPI MCP](https://github.com/GoAnyAPI/goanyapi-mcp). Magpie community repository: [magpie-community/plugins](https://github.com/magpie-community/plugins).\n"
+    },
     "@magpie-community/tools-layerfs": {
       "versions": {
         "0.7.1": {
