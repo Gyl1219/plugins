@@ -196,6 +196,19 @@ number written into the plugin would hold a Max account to a Lite one's
 with no way to raise it. A user who knows their plan's cap sets it on the
 account or the provider in magpie, and magpie's queue follows that.
 
+## Two accounts at once
+
+Three ZCode accounts used at once from one address can get the address
+refused with a 405, where two are served (01huadalang on Discord). So the
+plugin declares `maxAccounts` two, on the auth hook and as
+`magpie.maxAccounts` in its `package.json`: magpie sends requests to the
+first two accounts of the user's list only, and holds the others in
+reserve. One that runs out or fails rests, and the first in reserve takes
+its place until it is back. A user changes the number on the provider in
+magpie (Advanced → Accounts at once, or `magpie provider at-once zcode
+<n>`), 0 for every account at once. A magpie older than the one that
+reads it uses every account, as before.
+
 ## The usage card
 
 An account with both plans shows both allowances: the coding plan's

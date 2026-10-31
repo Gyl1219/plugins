@@ -1746,6 +1746,13 @@ function kept(res, text) {
 // (https://docs.z.ai/devpack/usage-policy), so a number written here would
 // hold a Max account to a Lite one's, with no way for the user to raise it.
 const DEFAULT_CONCURRENCY = 3
+// DEFAULT_ACCOUNTS is how many of a user's ZCode accounts magpie sends
+// requests to at the same time (maxAccounts, on the auth hook and in
+// package.json): the first in the user's list, the next taking over once
+// one runs out or fails. 01huadalang on Discord: three accounts used at
+// once from one address got the address refused with a 405, two didn't. A
+// user sets their own on the provider (Accounts at once), 0 for no limit.
+const DEFAULT_ACCOUNTS = 2
 const BUSY_CODES = new Set(["3008", "3009"])
 // BUSY_WAITS are the waits between asks, longest last: about ten seconds of
 // them. Past that the account is saturated rather than busy, and magpie's
@@ -2294,6 +2301,9 @@ export async function ZCodeAuthPlugin({ client }, options = {}) {
       // own cap follows its tier (Max > Pro > Lite) and the time of day, and
       // a user who knows theirs can raise this on the account
       maxConcurrency: DEFAULT_CONCURRENCY,
+      // how many accounts take requests at once, the others in reserve
+      // (DEFAULT_ACCOUNTS); a magpie that doesn't read it uses them all
+      maxAccounts: DEFAULT_ACCOUNTS,
       async loader(getAuth, provider) {
         const s0 = stateOf(await getAuth())
         if (!s0) return {}
@@ -2650,4 +2660,4 @@ export async function ZCodeAuthPlugin({ client }, options = {}) {
 // config sets what zcodeConfig has read, for tests: null is ZCode's config
 // out of reach, undefined forgets it
 const config = (cfg) => (cfgCache = cfg === undefined ? null : { cfg, at: Date.now() })
-export const _internal = { config, entry, limitWindows, termOf, startUsage, routes, blocked, plansOf, giftOf, dualUsage, claimHint, claimDaily, spentUp, giftServes, modelOf, teamKeys, ownSignIn, stateOf, located, dress, PROMPT, marked, keyDevice, sessionOf, busy, BUSY_WAITS, DEFAULT_CONCURRENCY }
+export const _internal = { config, entry, limitWindows, termOf, startUsage, routes, blocked, plansOf, giftOf, dualUsage, claimHint, claimDaily, spentUp, giftServes, modelOf, teamKeys, ownSignIn, stateOf, located, dress, PROMPT, marked, keyDevice, sessionOf, busy, BUSY_WAITS, DEFAULT_CONCURRENCY, DEFAULT_ACCOUNTS }
