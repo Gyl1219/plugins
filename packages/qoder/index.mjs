@@ -1711,6 +1711,9 @@ async function* events(body, tools = []) {
     f.call ? { tool: { index: ++index, id: "call_" + hexID(), name: f.call.name, args: f.call.args } } : f.error ? { error: { status: 502, message: f.error } } : { text: f.text }
   let usage
   let fr = ""
+  // said: something of the answer has been given (text, reasoning or a
+  // call), which a client may already show
+  let said = false
   for await (const line of sseLines(body)) {
     if (!line.startsWith("data:")) continue
     const payload = line.slice(5).trim()
@@ -1733,13 +1736,17 @@ async function* events(body, tools = []) {
       continue
     }
     const delta = chunk?.choices?.[0]?.delta ?? {}
-    if (delta.reasoning_content) yield { reasoning: delta.reasoning_content }
+    if (delta.reasoning_content) {
+      said = true
+      yield { reasoning: delta.reasoning_content }
+    }
     if (typeof delta.content === "string")
       for (const f of a.feed(delta.content)) {
         if (!f.call && !f.error && !f.text) continue
         const e = piece(f)
         yield e
         if (e.error) return
+        said = true
       }
     // tool calls served the OpenAI way keep Qoder's id: a result answers it
     for (const tc of delta.tool_calls ?? []) {
@@ -1763,7 +1770,7 @@ async function* events(body, tools = []) {
           yield e
           if (e.error) return
         }
-        a.sawTool = true
+        a.sawTool = said = true
         call.index = ++index
         yield { tool: { index: call.index, id: call.id || "call_" + hexID(), name, args: call.args } }
       } else if (args) yield { args: { index: call.index, text: args } }
@@ -1786,13 +1793,30 @@ async function* events(body, tools = []) {
     const e = piece(f)
     yield e
     if (e.error) return
+    said = true
   }
-  if ([...native.values()].some((call) => call.index === undefined)) {
-    yield { error: { status: 502, message: "the model's native tool call has no name; it is not sent on as a tool" } }
+  // A native call the model began and never named is never given: a
+  // client keeps an unnamed tool in its history and other providers
+  // refuse it. Its arguments, held while it waited for the name, go
+  // nowhere, not into the text either. With nothing said before it, the
+  // reply is no answer: a 502 (nameless) that ask sends once more, then
+  // the gateway's to retry or fail over. After an answer began, the call
+  // is dropped and the answer ends as it would have without it, so the
+  // text, reasoning and named calls already given are kept: qoder-cn's
+  // qfmodel did this now and then, and the whole turn failed with an
+  // error the client didn't retry (plugins#579).
+  const nameless = [...native.values()].filter((call) => call.index === undefined).length
+  if (nameless && !said) {
+    yield { error: { status: 502, message: NAMELESS, nameless: true } }
     return
   }
+  if (nameless) console.warn(`qoder: dropped ${nameless} native tool call${nameless > 1 ? "s" : ""} the model never named (plugins#579)`)
   yield { stop: a.sawTool ? "tool_calls" : fr === "length" ? "length" : "stop", usage }
 }
+
+// NAMELESS is the error of a reply whose only answer was a native tool
+// call the model never named.
+const NAMELESS = "the model's native tool call has no name; it is not sent on as a tool"
 
 // answer turns Qoder's reply into the chat completion OpenAI's API gives.
 // A failure before the answer keeps its status; one after it ends the
@@ -2880,6 +2904,7 @@ const makePlugin = (site) => async ({ client }) => {
     asked.cred = cred
     let m
     let relogged = false
+    let renamed = false
     const listed = (ms) => ms.find((x) => x.key === chat.model)
     try {
       m = listed(await models(cred)) ?? listed(await models(cred, true))
@@ -2953,6 +2978,14 @@ const makePlugin = (site) => async ({ client }) => {
           cred = asked.cred = next
           continue
         }
+      }
+      // a reply whose only answer was a native tool call the model never
+      // named (plugins#579): nothing of it was given, so it is asked once
+      // more, under a new request_id; a second one is the gateway's 502 to
+      // retry or fail over
+      if (f?.nameless && !renamed) {
+        renamed = true
+        continue
       }
       // an answered call moves its task on, as Qoder's client moves it
       if (!f) task.answered = true

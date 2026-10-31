@@ -153,6 +153,13 @@ itself.
   reasoning and usage.
 - Tool calls Qoder writes as XML or JSON in its text become tool calls.
   Tool calls it sends the OpenAI way keep Qoder's id.
+- A call sent the OpenAI way that never gets its function name is never
+  sent on, and its arguments go nowhere (since 0.2.51, #579). If nothing
+  of the answer came before it, the request is sent once more; a second
+  such reply is a 502 that magpie can retry or fail over. If the answer
+  had begun (text, reasoning or a named call), the unnamed call is dropped
+  and the answer ends as it would have without it (`tool_calls` beside a
+  named call, `stop` otherwise), with a warning in magpie's log.
 - A call written in the text that can't be read, or that the stream ends
   inside, is never sent on as the answer (since 0.2.16, #132): the turn
   ends as an error, a 502 or the stream's error frame with no finish, so
