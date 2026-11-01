@@ -804,7 +804,7 @@ async function toClaim(s) {
 
 // RECHECK is how long an "nothing to claim" stands before magpie's loop
 // asks again: ZCode drops gift plans into the feed during the day (a
-// reset card, a weekend banner) on its own schedule, and the day's ask
+// weekend banner, say) on its own schedule, and the day's ask
 // may have run hours before, so an inactive settled for the day lets a
 // plan sit unclaimed past its short life (the weekend plan of
 // testdata/touch-1030-wk.json starts 19:00 Beijing). `until` wakes the

@@ -271,8 +271,8 @@ once) and posts each plan to
 account's ZCode session, as the app does. An answer of nothing to claim
 carries an `until` half an hour out, so magpie's loop asks again then,
 and again, all day while neither list names a plan — two GETs, nothing
-posted: ZCode drops plans into the feed on its own schedule (a reset
-card, a weekend banner starting at 19:00 Beijing), and one that arrives
+posted: ZCode drops plans into the feed on its own schedule (a weekend
+banner starting at 19:00 Beijing, say), and one that arrives
 after the day's ask used to sit unclaimed past its short life. The
 other answers stand for the day: a claimed plan leaves the feed, so
 asking again half an hour later would find nothing and flip the card
