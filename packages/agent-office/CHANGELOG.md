@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 · 2026-11-01
+
+### Fixed
+
+- A Grok `usage.json` or `summary.json` rewritten at the same size within one file-system timestamp tick is read again. On Linux a write is stamped with the coarse kernel clock, so such a rewrite kept size, mtime and ctime, and the old token count stood. A sidecar stamped within the last 2.5 s now also carries a digest of its bytes, and its inode is part of its revision (#580).
+
 ## 0.2.1 · 2026-10-31
 
 ### Fixed
