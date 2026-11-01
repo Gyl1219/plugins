@@ -170,6 +170,10 @@
         "en": "Use your terminal Agent CLIs right inside magpie, by chat. Runs a local service on 127.0.0.1 that starts when the page opens and stops with magpie; only its own page gets the token. First install ~46 MB; Claude Code isn't bundled, so install the `claude` CLI yourself.",
         "zh": "把终端里的 Agent CLI 搬进 magpie 窗口，直接对话使用。会在本机 127.0.0.1 跑一个后台服务，打开页面才启动，随 magpie 退出；令牌只交给自己的页面。首次安装约 46 MB；不自带 Claude Code，要用请自己装 `claude` CLI。"
       }
-    }
+    },
+    { "package": "@magpie-community/opencode-astudio-auth", "name": "AStudio", "providers": ["astudio"], "community": true,
+      "summary": { "en": "Unofficial AStudio (iFLYTEK Astron Studio desktop): reuse the desktop sign-in to serve its Responses model gateway, with the live model catalog, daily login-points check-in and points balance. Desktop discovery runs on Windows (registry lookup), with a paste-token fallback.", "zh": "非官方 AStudio（科大讯飞 Astron Studio 桌面端）：复用桌面端登录态接入其模型网关，含实时模型目录、每日登录积分签到与积分余额。桌面端发现仅 Windows（注册表定位），另有粘贴凭据方式。" } },
+    { "package": "@magpie-community/opencode-agnes-code-auth", "name": "Agnes Code", "providers": ["agnes-code"], "community": true,
+      "summary": { "en": "Unofficial Agnes Code desktop: reuse the desktop sign-in for its OpenAI-compatible gateway, with the live model catalog, daily credit check-in and points balance. Desktop decryption is Windows-only; a paste-token method covers the rest.", "zh": "非官方 Agnes Code 桌面端：复用桌面端登录态接入其 OpenAI 兼容网关，含实时模型目录、每日积分签到与余额显示。桌面端解密仅限 Windows，其余平台用粘贴 accessToken。" } }
   ]
 }
