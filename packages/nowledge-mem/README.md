@@ -77,7 +77,10 @@ advanced settings. Saving conversations remains a separate opt-in.
 
 `serverUrl` must be HTTPS, or HTTP only for `localhost`, `127.0.0.1` and
 `[::1]`. Credentials, a query or a fragment in the URL are refused. Set
-`allowInsecureHttp` only for a trusted LAN server.
+`allowInsecureHttp` (the page's **Allow HTTP to another machine** switch) only
+on a network you trust, such as a Tailscale tailnet, whose link is already
+encrypted: then `http://mac-studio.tailnet.ts.net:14242` or
+`http://100.x.y.z:14242` is accepted by the page and the hook alike.
 
 ## One gateway, several harnesses
 
@@ -150,7 +153,17 @@ derived value for all of them.
   the protocol role does not establish authorship. It does not infer native Side
   Chat boundaries. Configure both options in Plugins → Options.
 - `allowInsecureHttp`: default **false**. Permits plain HTTP to a server that
-  is not a loopback address. Prefer HTTPS.
+  is not a loopback address, for a network you trust such as Tailscale. Prefer
+  HTTPS elsewhere. The page has a switch for it.
+- `recallRemote`: default **false**. Recall and the Context Bundle go only to
+  direct local requests and `magpie-key` from this computer. Set it to give
+  recall also to `remote` requests (another machine) and `gateway-key`
+  requests (other gateway keys), which then receive what Mem recalls. It does
+  not turn on saving. A missing or unknown origin never gets recall.
+- `captureRemote`: default **false**. With `capture` on, also save
+  conversations from `remote` and `gateway-key` requests. It does not grant
+  recall: without `recallRemote` those requests are saved but get nothing from
+  Mem. Set these two in Plugins → Options; the page does not show them.
 - `port`: the loopback port of the page's connection test, default 3479. Change
   it only when another program holds that port; the page reads the same value.
 
@@ -267,10 +280,11 @@ own: the offline tests replace `globalThis.fetch` to keep Cursor's token local
 The page uses only Magpie's released `magpie.options` and theme bridge. It
 declares no reads and saving stores configuration without probing the
 connection or writing Memory. It shows the Server, API key, Space, Agent, the
-apps without memory (`skipAgents`), and the recall, Context Bundle and capture
-switches. Its **What is sent** section says
+apps without memory (`skipAgents`), the recall, Context Bundle and capture
+switches, and **Allow HTTP to another machine** (`allowInsecureHttp`). Its **What is sent** section says
 the scope: direct local requests and `magpie-key` from this computer; other
-gateway keys and remote requests are never included. It follows Magpie's language (English, Simplified and
+gateway keys and remote requests are included only through `recallRemote` and
+`captureRemote`. It follows Magpie's language (English, Simplified and
 Traditional Chinese, Japanese, German) and theme, and preserves options it does
 not show.
 

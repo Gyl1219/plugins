@@ -6,7 +6,7 @@
 import { createHash } from "node:crypto";
 
 // Bumped with package.json: Mem's own clients record it on imported Threads.
-export const version = "0.1.3";
+export const version = "0.1.4";
 
 // The only report codes magpie's Plugins page shows; tools turn these into
 // messages, never the service's own text.
@@ -102,6 +102,8 @@ export function resolveOptions(raw = {}, env = process.env) {
         recall: bool("recall", true),
         contextBundle: bool("contextBundle", true),
         capture: bool("capture", false),
+        recallRemote: bool("recallRemote", false),
+        captureRemote: bool("captureRemote", false),
         captureTools: bool("captureTools", true),
         captureFilter,
         captureCindy: bool("captureCindy", false),

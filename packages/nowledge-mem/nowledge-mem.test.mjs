@@ -314,6 +314,8 @@ test("options it can't use are invalid, before anything is sent", async () => {
     { serverUrl: "http://127.0.0.1:14242", requestTimeoutMs: 10_000 },
     { serverUrl: "http://127.0.0.1:14242", recallBackoffMs: 10 },
     { serverUrl: "http://127.0.0.1:14242", capture: "yes" },
+    { serverUrl: "http://127.0.0.1:14242", recallRemote: "yes" },
+    { serverUrl: "http://127.0.0.1:14242", captureRemote: 1 },
     { serverUrl: "http://127.0.0.1:14242", skipAgents: 5 },
     { serverUrl: "http://127.0.0.1:14242", skipAgents: ["Mozilla", 1] },
     { serverUrl: "http://127.0.0.1:14242", apiKey: "bad key" },
@@ -708,6 +710,46 @@ test("a canceled request keeps its reason and does not back off the service", as
 })
 
 // The official sandbox page may configure options, but has no network or custom host API.
+test("remote and gateway-key requests get recall and capture only by their own opt-in (#608)", async () => {
+  for (const origin of ["remote", "gateway-key"]) {
+    for (const [recallRemote, captureRemote] of [[false, false], [true, false], [false, true], [true, true]]) {
+      mock()
+      calls.length = 0
+      const [reports, context] = capturing("chat", { origin, options: { recallRemote, captureRemote } })
+      const body = structuredClone(chat)
+      const out = await onRequest(body, context)
+      await onResponse(reply, { ...context, success: true })
+      expect(of("memories/search")).toHaveLength(recallRemote ? 1 : 0)
+      expect(of("threads/import")).toHaveLength(captureRemote ? 1 : 0)
+      // capture permission alone saves the conversation but recalls nothing
+      if (!recallRemote) {
+        expect(out).toBeUndefined()
+        expect(body).toEqual(chat)
+        expect(reports[0]).toEqual(["skipped"])
+      } else expect(JSON.stringify(out)).toContain("QUARTZ-8413")
+      reset()
+    }
+    // captureRemote does not turn capture on
+    mock()
+    calls.length = 0
+    const [, off] = capturing("chat", { origin, options: { capture: false, captureRemote: true } })
+    await onRequest(structuredClone(chat), off)
+    await onResponse(reply, { ...off, success: true })
+    expect(calls).toHaveLength(0)
+    reset()
+  }
+  // a missing or unknown origin stays out even with both opt-ins
+  for (const origin of [undefined, "unrecognized"]) {
+    mock()
+    calls.length = 0
+    const [, context] = capturing("chat", { origin, options: { recallRemote: true, captureRemote: true } })
+    await onRequest(structuredClone(chat), context)
+    await onResponse(reply, { ...context, success: true })
+    expect(calls).toHaveLength(0)
+    reset()
+  }
+})
+
 test("configuration page uses only the released options and theme bridge", async () => {
   const source = await Bun.file(new URL("./page/settings.js", import.meta.url)).text()
   const calls = [...source.matchAll(/magpie\.([\w.]+)/g)].map((match) => match[1])
@@ -813,6 +855,78 @@ test("configuration page saves the Mem connection for the shipped hook", async (
   expect(options.apiKeyEnv).toBe("NMEM_API_KEY")
   expect(options.maxBytes).toBe(6000)
   expect(elements["summary-space"].textContent).toBe("Default Space")
+})
+
+test("configuration page takes a tailnet HTTP server only with Allow HTTP to another machine (#608)", async () => {
+  const read = (file) => Bun.file(new URL(`./page/${file}`, import.meta.url)).text()
+  const [dictionary, source, html] = await Promise.all([read("i18n.js"), read("settings.js"), read("settings.html")])
+  const elements = Object.fromEntries([...html.matchAll(/\bid="([^"]+)"/g)].map(([, id]) => [id, {
+    dataset: {}, value: "", type: id === "key" ? "password" : "text", checked: false,
+    setAttribute(name, value) { this[name] = value }, focus() {}, showModal() {}, close() {},
+  }]))
+  expect(elements["insecure-http"]).toBeDefined()
+  const document = { documentElement: {}, getElementById: (id) => elements[id], querySelectorAll: () => [] }
+  const location = { href: "http://127.0.0.1:3425/_magpie/plugin/t/page/settings.html", assign(url) { this.assigned = url } }
+  let options = { serverUrl: "http://mac-studio.tailnet.ts.net:14242", recall: true, maxBytes: 6000 }
+  let writes = 0
+  const magpie = {
+    theme: { lang: "en" }, ready: Promise.resolve(), onTheme() {},
+    options: { get: async () => ({ ...options }), set: async (next) => { options = { ...next }; writes++ } },
+  }
+  runInNewContext(`${dictionary}\n${source}`, { document, magpie, window: { name: "" }, location, navigator: { language: "en" }, URL })
+  await new Promise(setImmediate)
+  const save = () => elements.save.onclick({ preventDefault() {} })
+
+  // without the option, a saved tailnet HTTP URL can't be tested or saved
+  expect(elements["insecure-http"].checked).toBe(false)
+  elements["test-saved"].onclick()
+  expect(location.assigned).toBeUndefined()
+  expect(elements.configured.dataset.message).toBe("invalidUrl")
+  for (const url of ["http://mac-studio.tailnet.ts.net:14242", "http://100.101.102.103:14242"]) {
+    elements.url.value = url
+    await save()
+    expect(writes).toBe(0)
+    expect(elements.result.dataset.message).toBe("invalidUrl")
+  }
+
+  // with it, the page saves what the hook then uses
+  elements["insecure-http"].checked = true
+  for (const url of ["http://100.101.102.103:14242", "http://mac-studio.tailnet.ts.net:14242"]) {
+    elements.url.value = url
+    await save()
+    expect(elements.result.dataset.message).toBe("saveSucceeded")
+    expect(options).toMatchObject({ serverUrl: `${url}/`, allowInsecureHttp: true, maxBytes: 6000 })
+    expect(resolveOptions(options).server.href).toBe(`${url}/`)
+  }
+  expect(writes).toBe(2)
+  elements["test-saved"].onclick()
+  expect(location.assigned).toBe("http://127.0.0.1:3479/test?lang=en")
+  mock()
+  calls.length = 0
+  await onRequest(structuredClone(chat), ctx("chat", { options }))
+  expect(of("memories/search")[0].url.href).toBe("http://mac-studio.tailnet.ts.net:14242/memories/search")
+
+  // the dialog shows the saved option; the rest of the URL rules still hold
+  elements["insecure-http"].checked = false
+  elements.configure.onclick()
+  expect(elements["insecure-http"].checked).toBe(true)
+  for (const invalid of ["ftp://mem.example.com", "http://user:pw@mac-studio.tailnet.ts.net:14242", "http://mac-studio.tailnet.ts.net:14242?token=x"]) {
+    elements.url.value = invalid
+    await save()
+    expect(writes).toBe(2)
+    expect(elements.result.dataset.message).toBe("invalidUrl")
+  }
+
+  // turning it off drops the option, so the tailnet URL is refused again
+  elements["insecure-http"].checked = false
+  elements.url.value = "https://mem.example.com"
+  await save()
+  expect(writes).toBe(3)
+  expect(options.allowInsecureHttp).toBeUndefined()
+  elements.url.value = "http://mac-studio.tailnet.ts.net:14242"
+  await save()
+  expect(writes).toBe(3)
+  expect(elements.result.dataset.message).toBe("invalidUrl")
 })
 
 test("configuration page follows the host language without losing edits or messages", async () => {

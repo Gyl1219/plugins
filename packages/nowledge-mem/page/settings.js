@@ -30,15 +30,17 @@ function skipList(value) {
  const names = Array.isArray(value) ? value : typeof value === "string" ? value.split(/[,，\n]/) : [];
  return names.filter((name) => typeof name === "string").map((name) => name.trim()).filter(Boolean);
 }
-function validUrl(raw) {
+// The same rule as mem.mjs: plain HTTP to another machine only with
+// allowInsecureHttp, as on a tailnet, whose link is already encrypted.
+function validUrl(raw, insecure = false) {
  let url;
  try { url = new URL(raw); } catch { return null }
  const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
- if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash || (url.protocol === "http:" && !loopback)) return null;
+ if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.search || url.hash || (url.protocol === "http:" && !loopback && insecure !== true)) return null;
  return url;
 }
 function formUrl(fallback = "") {
- return validUrl($("url").value.trim() || fallback);
+ return validUrl($("url").value.trim() || fallback, $("insecure-http").checked);
 }
 function testService() {
  const service = window.magpie?.service;
@@ -53,6 +55,7 @@ function fill(options) {
  $("skip-agents").value = skipList(options.skipAgents).join(", ");
  $("key").value = (options.apiKey || "").replace(/^Bearer\s+/i, "");
  $("key").type = "password";
+ $("insecure-http").checked = options.allowInsecureHttp === true;
  $("recall").checked = options.recall !== false;
  $("context").checked = options.contextBundle !== false;
  $("capture").checked = options.capture === true;
@@ -116,6 +119,8 @@ const save = async (event) => {
   else delete next.skipAgents;
   if (key) next.apiKey = key;
   else delete next.apiKey;
+  if ($("insecure-http").checked) next.allowInsecureHttp = true;
+  else delete next.allowInsecureHttp;
   await magpie.options.set(next);
   savedOptions = next; summary();
   message("configured", "configurationSaved");
@@ -126,7 +131,7 @@ const save = async (event) => {
 
 $("test-saved").onclick = () => {
  if (!savedOptions) return;
- const url = validUrl(savedOptions.serverUrl || "http://127.0.0.1:14242");
+ const url = validUrl(savedOptions.serverUrl || "http://127.0.0.1:14242", savedOptions.allowInsecureHttp === true);
  if (!url) { message("configured", "invalidUrl", true); return }
  const target = new URL(testService() + "/test");
  target.searchParams.set("lang", language);
