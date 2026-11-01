@@ -108,9 +108,18 @@ the reply, not only while a tool or subagent works.
   keep a process running.
 - The plugin's options change the interval and the most pings:
   `cacheKeepaliveInterval` (seconds, 30–299, default 285) and
-  `cacheKeepaliveMaxPings` (1–50, default 6), in magpie's `plugins.json`
-  entry or OpenCode's `["@magpie-community/opencode-devin-auth", {…}]`.
-  In OpenCode, which has no switch, `cacheKeepalive: true` turns it on.
+  `cacheKeepaliveMaxPings` (1–50, default 6). In magpie they are set from
+  the plugin's row on the Plugins page (Installed › Options, which starts
+  from these defaults), or in its `plugins.json` entry; in OpenCode,
+  `["@magpie-community/opencode-devin-auth", {…}]`. In OpenCode, which
+  has no switch, `cacheKeepalive: true` turns it on.
+- Each ping shows in magpie's request log and usage totals as a call of
+  magpie's, *Cache keep-alive*, on the conversation's model and account,
+  with its tokens and cost (a magpie that has `magpie.usage`, from
+  11-01; #592). The pings go straight to Devin, never through magpie's
+  gateway, which would re-shape the request so the cache no longer
+  matched. One cut short by the conversation's next request isn't
+  listed. An older magpie, and OpenCode, list none.
 
 **The cost.** Each ping is billed as a cache read of the whole context, plus
 a token or two. That is about a tenth of writing it again, but it is

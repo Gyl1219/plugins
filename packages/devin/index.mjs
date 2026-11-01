@@ -2225,21 +2225,23 @@ function hookExit() {
   process.once?.("exit", stopAllKeepalive)
 }
 
-// pingOnce sends a ping and reads its status and usage.
+// pingOnce sends a ping and reads its status and usage, and why it
+// failed (error).
 async function pingOnce(server, key, body, signal) {
   let res
   try {
     res = await fetch(server + CHAT_RPC, { method: "POST", headers: rpcHeaders(key, body), body, signal })
-  } catch {
-    return { status: 0 }
+  } catch (e) {
+    return { status: 0, error: String(e?.message || e || "fetch failed") }
   }
-  if (!res.ok) return { status: failure(res.status, (await res.text().catch(() => "")).slice(0, 1 << 16)).status }
-  const tokens = { input: 0, cacheRead: 0, cacheWrite: 0 }
+  const failed = (e) => ({ status: e.status, error: e.message })
+  if (!res.ok) return failed(failure(res.status, (await res.text().catch(() => "")).slice(0, 1 << 16)))
+  const tokens = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
   try {
     for await (const f of frames(res.body)) {
       if (f.end) {
         const e = failure(200, dec.decode(f.data))
-        if (e.status >= 300) return { status: e.status }
+        if (e.status >= 300) return failed(e)
         break
       }
       for (const x of fields(f.data)) {
@@ -2247,20 +2249,36 @@ async function pingOnce(server, key, body, signal) {
         for (const g of fields(x.data)) {
           if (g.wire !== 0) continue
           if (g.num === 2) tokens.input = g.n
+          else if (g.num === 3) tokens.output = g.n
           else if (g.num === 4) tokens.cacheWrite = g.n
           else if (g.num === 5) tokens.cacheRead = g.n
         }
       }
     }
-  } catch {
-    return { status: 0 }
+  } catch (e) {
+    return { status: 0, error: String(e?.message || e || "the reply broke off") }
   }
   return { status: 200, tokens }
 }
 
+// reportPing tells magpie of a ping, for its request log and usage
+// totals (magpie.usage, plugins#592): the pings were invisible there, as
+// they never pass magpie's gateway. They go straight to Devin, as the
+// gateway would re-shape the request and the cache would no longer match.
+// An aborted one (a real request came) went nowhere worth counting; an
+// older magpie, or OpenCode, has no magpie.usage and is told nothing.
+function reportPing(keep, r, ms) {
+  if (!keep.report || r.aborted) return
+  const t = r.tokens ?? {}
+  try {
+    keep.report({ kind: KEEPALIVE, model: keep.model, account: keep.account, input: t.input, output: t.output, cacheRead: t.cacheRead, cacheWrite: t.cacheWrite, status: r.status, ms, error: r.error })
+  } catch {}
+}
+
 // scheduleKeepalive starts a conversation's pings for the request msg
 // just answered, in place of any it had.
-function scheduleKeepalive({ id, interval, max }, key, server, msg) {
+function scheduleKeepalive(keep, key, server, msg) {
+  const { id, interval, max } = keep
   const ping = keepalivePing(msg)
   if (!ping) return
   stopKeepalive(id)
@@ -2277,9 +2295,11 @@ function scheduleKeepalive({ id, interval, max }, key, server, msg) {
     k.timer = null
     if (keeps.get(id) !== k) return
     k.n++
-    k.ctl = new AbortController()
-    const r = await pingOnce(server, key, body, k.ctl.signal)
+    const ctl = (k.ctl = new AbortController())
+    const at = Date.now()
+    const r = await pingOnce(server, key, body, ctl.signal)
     k.ctl = null
+    reportPing(keep, { ...r, aborted: ctl.signal.aborted }, Date.now() - at)
     if (keeps.get(id) !== k) return // a real request came, or the switch went off
     if (KEEPALIVE_STOP.has(r.status)) return stopKeepalive(id)
     const t = r.tokens
@@ -2890,6 +2910,8 @@ async function live(auth) {
 }
 
 export async function DevinAuthPlugin({ client, magpie } = {}, options = {}) {
+  // each ping, to magpie's request log (an older magpie has no usage)
+  const report = typeof magpie?.usage === "function" ? (call) => magpie.usage(ID, call) : null
   // the cache keepalive: magpie's switch, or in OpenCode the plugin's
   // option cacheKeepalive: true
   const keepOn = () => magpie?.option?.(ID, KEEPALIVE) === true || options?.cacheKeepalive === true
@@ -2927,7 +2949,9 @@ export async function DevinAuthPlugin({ client, magpie } = {}, options = {}) {
             else {
               const id = keepaliveKey(chat, messages, init.headers ?? (input instanceof Request ? input.headers : undefined))
               stopKeepalive(id)
-              keep = { id, ...keepaliveSettings(options) }
+              // the model and account the pings are reported as: the
+              // request's, as magpie names them while it is in hand
+              keep = { id, ...keepaliveSettings(options), report, model: chat.model, account: magpie?.account?.(ID) }
             }
             const { key, server } = await live(now)
             const families = await familiesFor(key, server)
@@ -2944,13 +2968,13 @@ export async function DevinAuthPlugin({ client, magpie } = {}, options = {}) {
         {
           key: KEEPALIVE,
           label: "Keep the cache warm",
-          description: "Devin keeps a prompt cache for 5 minutes. When on, after a reply the conversation is sent again with max_tokens 1 every 285 s, up to 6 times, so a later turn reads the cache instead of writing it again. Each ping is billed as a cache read of the whole context.",
+          description: "Devin keeps a prompt cache for 5 minutes. When on, after a reply the conversation is sent again with max_tokens 1 every 285 s, up to 6 times, so a later turn reads the cache. Each ping is billed as a cache read of the whole context and shown in Usage. Interval and count: Plugins › Options.",
           labels: { zh: "缓存保活", "zh-TW": "快取保活", ja: "キャッシュを保持", de: "Cache warm halten" },
           descriptions: {
-            zh: "Devin 的提示词缓存只保留 5 分钟。开启后，每次回复结束会每 285 秒以 max_tokens 1 重发一次对话，最多 6 次，让之后的回合读取缓存而不是重写。每次保活都按整段上下文的缓存读取计费。",
-            "zh-TW": "Devin 的提示詞快取只保留 5 分鐘。開啟後，每次回覆結束會每 285 秒以 max_tokens 1 重送一次對話，最多 6 次，讓之後的回合讀取快取而不是重寫。每次保活都以整段上下文的快取讀取計費。",
-            ja: "Devin のプロンプトキャッシュは 5 分しか保持されません。オンにすると、返信のあと 285 秒ごとに会話を max_tokens 1 で再送し（最大 6 回）、次のターンがキャッシュを書き直さずに読めるようにします。各 ping はコンテキスト全体のキャッシュ読み取りとして課金されます。",
-            de: "Devin hält einen Prompt-Cache nur 5 Minuten. Ist dies an, wird das Gespräch nach einer Antwort alle 285 s mit max_tokens 1 erneut gesendet, bis zu 6-mal, damit eine spätere Runde den Cache liest, statt ihn neu zu schreiben. Jeder Ping wird als Cache-Lesen des ganzen Kontexts berechnet.",
+            zh: "Devin 的提示词缓存只保留 5 分钟。开启后，每次回复结束会每 285 秒以 max_tokens 1 重发一次对话，最多 6 次，让之后的回合读取缓存而不是重写。每次保活都按整段上下文的缓存读取计费，并在用量里记为「缓存保活」。间隔和次数在插件 › 选项里改。",
+            "zh-TW": "Devin 的提示詞快取只保留 5 分鐘。開啟後，每次回覆結束會每 285 秒以 max_tokens 1 重送一次對話，最多 6 次，讓之後的回合讀取快取而不是重寫。每次保活都以整段上下文的快取讀取計費，並在用量裡記為「快取保活」。間隔和次數在外掛 › 選項裡改。",
+            ja: "Devin のプロンプトキャッシュは 5 分しか保持されません。オンにすると、返信のあと 285 秒ごとに会話を max_tokens 1 で再送し（最大 6 回）、次のターンがキャッシュを読めるようにします。各 ping はコンテキスト全体のキャッシュ読み取りとして課金され、使用量に表示されます。間隔と回数はプラグイン › オプションで変更できます。",
+            de: "Devin hält einen Prompt-Cache nur 5 Minuten. Ist dies an, wird das Gespräch nach einer Antwort alle 285 s mit max_tokens 1 erneut gesendet, bis zu 6-mal. Jeder Ping wird als Cache-Lesen des ganzen Kontexts berechnet und unter Nutzung gezeigt. Intervall und Anzahl: Erweiterungen › Optionen.",
           },
         },
       ],

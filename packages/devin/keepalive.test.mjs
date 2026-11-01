@@ -295,3 +295,62 @@ test("the switch says its words in magpie's languages, off by default", async ()
   expect(Object.keys(o.descriptions)).toEqual(["zh", "zh-TW", "ja", "de"])
   for (const d of [o.description, ...Object.values(o.descriptions)]) expect(d.length).toBeLessThanOrEqual(300)
 })
+
+// magpie.usage (plugins#592): each ping goes to magpie's request log, on
+// the request's model and account, as the pings never pass its gateway
+const reporting = async (calls, account = "devin#a1") => {
+  const magpie = { option: (p, k) => p === "devin" && k === KEEPALIVE, account: (p) => (p === "devin" ? account : undefined), usage: (p, c) => (calls.push({ p, ...c }), true) }
+  const hooks = await DevinAuthPlugin({ magpie })
+  const { fetch } = await hooks.auth.loader(async () => auth)
+  return async (chat) => (await fetch("https://server.codeium.com/devin/v1/chat/completions", { method: "POST", body: JSON.stringify({ model: "swe-2", ...chat }) })).text()
+}
+
+test("each ping is told to magpie, with its tokens, model and account; a failed one with why", async () => {
+  devin()
+  const calls = []
+  const ask = await reporting(calls)
+  await ask(lead())
+  expect(calls).toEqual([]) // the real request is the gateway's to count
+  pings.push(() => answer({ input: 3, read: 9200 }), () => new Response(JSON.stringify({ code: "unauthenticated", message: "bad key" }), { status: 401 }))
+  await clock.fire()
+  await clock.fire()
+  expect(calls.length).toBe(2)
+  const [ok, bad] = calls
+  expect(ok).toMatchObject({ p: "devin", kind: KEEPALIVE, model: "swe-2", account: "devin#a1", input: 3, output: 1, cacheRead: 9200, cacheWrite: 0, status: 200 })
+  expect(ok.error).toBeUndefined()
+  expect(typeof ok.ms).toBe("number")
+  expect(bad).toMatchObject({ kind: KEEPALIVE, model: "swe-2", status: 401 })
+  expect(bad.error).toContain("bad key")
+})
+
+test("a ping cut short by the conversation's next request isn't told", async () => {
+  devin()
+  const calls = []
+  const ask = await reporting(calls)
+  await ask(lead())
+  let held
+  pings.push(() => new Promise((_, no) => (held = no)))
+  const fired = clock.fire()
+  await Bun.sleep(0)
+  // the next request stops the conversation's pings, aborting the one out
+  await ask(lead({ role: "assistant", content: "done" }, { role: "user", content: "next" }))
+  held(new DOMException("aborted", "AbortError"))
+  await fired
+  expect(pingsSent()).toBe(1)
+  expect(calls).toEqual([])
+})
+
+test("an older magpie, with no magpie.usage, is told nothing and the pings go on", async () => {
+  devin()
+  const ask = await plugin(true)
+  await ask(lead())
+  await clock.fire()
+  expect(pingsSent()).toBe(1)
+  expect(clock.live().length).toBe(1)
+})
+
+test("package.json gives magpie's Options editor the two settings' defaults", async () => {
+  const pkg = JSON.parse(readFileSync(join(import.meta.dir, "package.json"), "utf8"))
+  const { interval, max } = _internal.keepaliveSettings({})
+  expect(pkg.magpie.options).toEqual({ cacheKeepaliveInterval: interval / 1000, cacheKeepaliveMaxPings: max })
+})
