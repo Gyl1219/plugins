@@ -251,7 +251,6 @@ credits left is shown only too, and the account isn't taken for spent.
 
 ## Not included
 
-- Usage and quota (credits, the monthly window).
 - Switching between several accounts. OpenCode keeps one sign-in per
   provider.
 - Signing in with a company's own identity provider in the browser (use
