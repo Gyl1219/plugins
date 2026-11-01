@@ -14,15 +14,12 @@ const messages = {
     "dialogTitle": "Connection settings",
     "settingsIntro": "Connect Magpie to your Nowledge Mem.",
     "serviceSection": "Mem service",
-    "urlHelp": "Local HTTP or remote HTTPS; HTTP to another machine needs the switch below. No credentials in the URL.",
-    "insecureHttp": "Allow HTTP to another machine",
-    "insecureHttpHelp": "Only on a network you trust, e.g. Tailscale. Elsewhere your conversations and API key would cross the network unencrypted.",
+    "urlHelp": "Local HTTP or remote HTTPS without credentials in the URL. Remote HTTP requires the advanced exception. Empty uses NMEM_API_URL or the local default.",
     "spaceHelp": "Optional. Leave empty for the default Space.",
     "agentHelp": "Optional. Selects the Mem agent profile used for the Context Bundle.",
     "authSection": "Authentication",
     "key": "API key",
-    "keyHelp": "Leave empty when your Mem does not require a key. Saved in Magpie’s local plugin configuration.",
-    "keyFallback": "With this field empty, Magpie reads the variable named in apiKeyEnv (NMEM_API_KEY by default); only NMEM_* names are accepted.",
+    "keyHelp": "Saved in Magpie’s local plugin configuration.",
     "behaviorSection": "What Magpie sends",
     "recallHelp": "Search Mem with the latest user turn and add what it recalls to the request.",
     "skipAgents": "Apps without memory",
@@ -53,7 +50,7 @@ const messages = {
     "notConfigured": "Not configured",
     "loadFailed": "Could not load configuration. Reopen this page to retry.",
     "bridgeFailed": "Magpie configuration bridge unavailable.",
-    "invalidUrl": "Use local HTTP or remote HTTPS (HTTP too with “Allow HTTP to another machine” on), without credentials, query or fragment.",
+    "invalidUrl": "Use HTTP(S) without credentials, query or fragment. Non-local HTTP requires the advanced exception.",
     "invalidKey": "Enter an API key without spaces or line breaks.",
     "configurationSaved": "Configuration saved",
     "saveSucceeded": "Saved. Connectivity has not been checked and no conversation was written.",
@@ -75,15 +72,12 @@ const messages = {
     "dialogTitle": "连接设置",
     "settingsIntro": "把 Magpie 连接到你的 Nowledge Mem。",
     "serviceSection": "Mem 服务",
-    "urlHelp": "本机用 HTTP，远端用 HTTPS；远端用 HTTP 需打开下方开关。地址里不要带凭据。",
-    "insecureHttp": "允许用 HTTP 连接另一台机器",
-    "insecureHttpHelp": "仅在你信任的网络中开启，例如 Tailscale。在其他网络中，你的对话和 API 密钥会以明文经过网络。",
+    "urlHelp": "本机 HTTP 或远程 HTTPS，URL 不得包含凭据。远程 HTTP 需要开启高级设置中的例外。留空使用 NMEM_API_URL 或本机默认地址。",
     "spaceHelp": "可选。留空使用默认 Space。",
     "agentHelp": "可选。选择 Context Bundle 使用的 Mem agent 档案。",
     "authSection": "认证",
     "key": "API 密钥",
-    "keyHelp": "Mem 不要求密钥时留空。保存在 Magpie 的本地插件配置中。",
-    "keyFallback": "此字段留空时，Magpie 读取 apiKeyEnv 指定的变量（默认 NMEM_API_KEY）；只接受 NMEM_* 名称。",
+    "keyHelp": "保存在 Magpie 的本地插件配置中。",
     "behaviorSection": "Magpie 会发送什么",
     "recallHelp": "用最新一条用户消息搜索 Mem，并把召回内容加入请求。",
     "skipAgents": "不用记忆的应用",
@@ -114,7 +108,7 @@ const messages = {
     "notConfigured": "尚未配置",
     "loadFailed": "无法读取配置。请重新打开此页面重试。",
     "bridgeFailed": "Magpie 配置桥不可用。",
-    "invalidUrl": "请使用本机 HTTP 或远端 HTTPS（打开“允许用 HTTP 连接另一台机器”后也可用 HTTP），且不含凭据、查询参数或片段。",
+    "invalidUrl": "请使用不含凭据、查询参数或片段的 HTTP(S) 地址；非本机 HTTP 需要开启高级设置中的例外。",
     "invalidKey": "请输入不含空格或换行的 API 密钥。",
     "configurationSaved": "配置已保存",
     "saveSucceeded": "已保存。未检测连通性，也没有写入对话。",
@@ -136,15 +130,12 @@ const messages = {
     "dialogTitle": "連線設定",
     "settingsIntro": "把 Magpie 連接到你的 Nowledge Mem。",
     "serviceSection": "Mem 服務",
-    "urlHelp": "本機用 HTTP，遠端用 HTTPS；遠端用 HTTP 需開啟下方開關。位址裡不要帶憑證。",
-    "insecureHttp": "允許用 HTTP 連線到另一台機器",
-    "insecureHttpHelp": "僅在你信任的網路中開啟，例如 Tailscale。在其他網路中，你的對話和 API 金鑰會以明文經過網路。",
+    "urlHelp": "本機 HTTP 或遠端 HTTPS，網址不得包含憑據。遠端 HTTP 需要開啟進階設定中的例外。留空使用 NMEM_API_URL 或本機預設位址。",
     "spaceHelp": "選填。留空使用預設 Space。",
     "agentHelp": "選填。選擇 Context Bundle 使用的 Mem agent 設定檔。",
     "authSection": "驗證",
     "key": "API 金鑰",
-    "keyHelp": "Mem 不要求金鑰時留空。儲存在 Magpie 的本機外掛設定中。",
-    "keyFallback": "此欄位留空時，Magpie 讀取 apiKeyEnv 指定的變數（預設為 NMEM_API_KEY）；只接受 NMEM_* 名稱。",
+    "keyHelp": "儲存在 Magpie 的本機外掛設定中。",
     "behaviorSection": "Magpie 會傳送什麼",
     "recallHelp": "用最新一則使用者訊息搜尋 Mem，並把召回內容加入請求。",
     "skipAgents": "不用記憶的應用程式",
@@ -175,7 +166,7 @@ const messages = {
     "notConfigured": "尚未設定",
     "loadFailed": "無法讀取設定。請重新開啟此頁面重試。",
     "bridgeFailed": "Magpie 設定橋不可用。",
-    "invalidUrl": "請使用本機 HTTP 或遠端 HTTPS（開啟「允許用 HTTP 連線到另一台機器」後也可用 HTTP），且不含憑證、查詢參數或片段。",
+    "invalidUrl": "請使用不含憑據、查詢參數或片段的 HTTP(S) 位址；非本機 HTTP 需要開啟進階設定中的例外。",
     "invalidKey": "請輸入不含空格或換行的 API 金鑰。",
     "configurationSaved": "設定已儲存",
     "saveSucceeded": "已儲存。未偵測連線，也沒有寫入對話。",
@@ -197,15 +188,12 @@ const messages = {
     "dialogTitle": "接続設定",
     "settingsIntro": "Magpie を Nowledge Mem に接続します。",
     "serviceSection": "Mem サービス",
-    "urlHelp": "ローカルは HTTP、リモートは HTTPS。リモートに HTTP を使うには下のスイッチを有効にします。URL に認証情報を含めないでください。",
-    "insecureHttp": "別のコンピューターへの HTTP を許可",
-    "insecureHttpHelp": "信頼できるネットワーク（Tailscale など）でのみ有効にしてください。それ以外では、会話と API キーが暗号化されずにネットワークを通ります。",
+    "urlHelp": "ローカル HTTP またはリモート HTTPS。URL に認証情報は含められません。リモート HTTP は詳細設定での許可が必要です。空欄では NMEM_API_URL またはローカル既定値を使います。",
     "spaceHelp": "任意。空欄なら既定の Space を使います。",
     "agentHelp": "任意。Context Bundle に使う Mem の agent プロファイルを選びます。",
     "authSection": "認証",
     "key": "API キー",
-    "keyHelp": "Mem がキーを要求しない場合は空欄。Magpie のローカルなプラグイン設定に保存されます。",
-    "keyFallback": "空欄の場合、Magpie は apiKeyEnv の変数（既定は NMEM_API_KEY）を読みます。NMEM_* の名前だけを受け付けます。",
+    "keyHelp": "Magpie のローカルプラグイン設定に保存されます。",
     "behaviorSection": "Magpie が送るもの",
     "recallHelp": "最新のユーザーの発話で Mem を検索し、呼び出した内容をリクエストに加えます。",
     "skipAgents": "メモリを使わないアプリ",
@@ -236,7 +224,7 @@ const messages = {
     "notConfigured": "未設定",
     "loadFailed": "設定を読み込めませんでした。このページを開き直してください。",
     "bridgeFailed": "Magpie の設定ブリッジを利用できません。",
-    "invalidUrl": "ローカル HTTP またはリモート HTTPS（「別のコンピューターへの HTTP を許可」が有効なら HTTP も可）を、認証情報・クエリ・フラグメントなしで指定してください。",
+    "invalidUrl": "認証情報・クエリ・フラグメントのない HTTP(S) を指定してください。ローカル以外の HTTP は詳細設定での許可が必要です。",
     "invalidKey": "空白や改行を含まない API キーを入力してください。",
     "configurationSaved": "設定を保存しました",
     "saveSucceeded": "保存しました。接続確認はしておらず、会話も書き込んでいません。",
@@ -258,15 +246,12 @@ const messages = {
     "dialogTitle": "Verbindungseinstellungen",
     "settingsIntro": "Verbinde Magpie mit deiner Nowledge Mem.",
     "serviceSection": "Mem-Dienst",
-    "urlHelp": "Lokales HTTP oder entferntes HTTPS; HTTP zu einem anderen Computer braucht den Schalter unten. Keine Zugangsdaten in der URL.",
-    "insecureHttp": "HTTP zu einem anderen Computer erlauben",
-    "insecureHttpHelp": "Nur in einem Netz, dem du vertraust, z. B. Tailscale. Anderswo gingen deine Gespräche und dein API-Schlüssel unverschlüsselt durchs Netz.",
+    "urlHelp": "Lokales HTTP oder entferntes HTTPS ohne Zugangsdaten in der URL. Entferntes HTTP benötigt die Ausnahme unter Erweitert. Leer verwendet NMEM_API_URL oder den lokalen Standard.",
     "spaceHelp": "Optional. Leer lassen für den Standard-Space.",
     "agentHelp": "Optional. Wählt das Mem-Agent-Profil für das Context Bundle.",
     "authSection": "Authentifizierung",
     "key": "API-Schlüssel",
-    "keyHelp": "Leer lassen, wenn Mem keinen Schlüssel verlangt. Wird in Magpies lokaler Plugin-Konfiguration gespeichert.",
-    "keyFallback": "Bei leerem Feld liest Magpie die in apiKeyEnv genannte Variable (standardmäßig NMEM_API_KEY); nur NMEM_*-Namen werden akzeptiert.",
+    "keyHelp": "In Magpies lokaler Plugin-Konfiguration gespeichert.",
     "behaviorSection": "Was Magpie sendet",
     "recallHelp": "Mem mit dem letzten Benutzerbeitrag durchsuchen und das Gefundene an die Anfrage anhängen.",
     "skipAgents": "Apps ohne Gedächtnis",
@@ -297,7 +282,7 @@ const messages = {
     "notConfigured": "Nicht konfiguriert",
     "loadFailed": "Konfiguration konnte nicht geladen werden. Seite zum Wiederholen neu öffnen.",
     "bridgeFailed": "Magpies Konfigurationsschnittstelle ist nicht verfügbar.",
-    "invalidUrl": "Lokales HTTP oder entferntes HTTPS (HTTP auch, wenn „HTTP zu einem anderen Computer erlauben“ an ist) ohne Zugangsdaten, Abfrage oder Fragment verwenden.",
+    "invalidUrl": "HTTP(S) ohne Zugangsdaten, Abfrage oder Fragment verwenden. Nichtlokales HTTP benötigt die Ausnahme unter Erweitert.",
     "invalidKey": "API-Schlüssel ohne Leerzeichen oder Zeilenumbrüche eingeben.",
     "configurationSaved": "Konfiguration gespeichert",
     "saveSucceeded": "Gespeichert. Die Verbindung wurde nicht geprüft und kein Gespräch geschrieben.",
@@ -308,6 +293,62 @@ const messages = {
     "captureFailed": "Änderung konnte nicht bestätigt werden. Der Schalter zeigt die zuletzt gelesene Konfiguration."
   }
 };
+
+// Additional settings; missing translations fall back to English without changing locale selection.
+Object.assign(messages.en, {
+ concurrencyHelp:"Saving merges your edits into the latest settings, but another editor saving at the same moment can still overwrite them. Use one editor at a time. Very large integers in options may be rounded.",
+ configure: "Settings", dialogTitle: "Nowledge Mem settings", settingsIntro: "Configure connection, recall and saving.", saveHelp: "Unchanged and unlisted options are preserved.", notConfigured: "Using the environment or local default · not tested yet",
+ useDefault: "Use default / inherit",
+ hostAgent: "Host agent ID", hostAgentHelp: "Empty derives an identity from the harness.",
+ keyActionHelp: "Clearing the saved value falls back to the environment variable; it does not disable it.",
+ keyEnv: "API key environment variable", keyEnvHelp: "Only NMEM_* names are accepted. Empty uses NMEM_API_KEY.",
+ filterSection: "Saving and filtering", captureTools: "Include client tool results", captureCindy: "Clean recognized Cindy wrappers in human mode",
+ advanced: "Advanced", maxMemories: "Maximum memories (1–20)", maxBytes: "Recall bytes (512–32768)", requestTimeout: "Request timeout ms (50–5000)", recallBackoff: "Recall backoff ms (100–300000)", gatewayTimeout: "Host hook timeout ms (100–10000)", port: "Connection-test port (1024–65535)", insecure: "Allow HTTP to a non-local server (credentials travel unencrypted)", defaultsHelp: "Empty fields inherit the environment where supported, otherwise use the shown default. Unchanged values remain as configured. The host timeout can end a request first.",
+ conflict:"Configuration changed elsewhere. Your draft is kept; select Cancel, then reopen Settings to load the latest values.", invalidOption: "Check the highlighted values and ranges.",
+});
+Object.assign(messages.zh, {
+ concurrencyHelp:"保存时会将你的修改合并到最新设置，但其他编辑入口同时保存仍可能覆盖更改。请一次只使用一个编辑入口。选项中的超大整数可能被舍入。",
+ configure: "设置", dialogTitle: "Nowledge Mem 设置", settingsIntro: "配置连接、召回与保存。", saveHelp: "未修改及未列出的选项会保留。", notConfigured: "使用环境变量或本机默认值 · 尚未测试",
+ useDefault: "恢复默认 / 继承",
+ hostAgent: "宿主 Agent ID", hostAgentHelp: "留空时从客户端类型推导。", keyActionHelp: "清除保存值后仍会继承环境变量，不会禁用环境变量。", keyEnv: "API 密钥环境变量", keyEnvHelp: "仅接受 NMEM_* 名称；留空使用 NMEM_API_KEY。",
+ filterSection: "保存与过滤", captureTools: "包含客户端工具结果", captureCindy: "在人类对话模式清理已识别的 Cindy 包装",
+ advanced: "高级设置", maxMemories: "最多召回记忆数（1–20）", maxBytes: "召回字节数（512–32768）", requestTimeout: "请求超时毫秒（50–5000）", recallBackoff: "召回退避毫秒（100–300000）", gatewayTimeout: "宿主 hook 超时毫秒（100–10000）", port: "连接测试端口（1024–65535）", insecure: "允许非本机 HTTP（凭据将明文传输）", defaultsHelp: "留空时，支持环境继承的选项使用环境值，其余使用显示的默认值。未修改的值保持原样；宿主超时可能更早结束请求。",
+ conflict:"配置已在其他位置更改，草稿已保留。请选择“取消”，再重新打开设置以加载最新值。", invalidOption: "请检查输入及允许范围。",
+});
+Object.assign(messages["zh-TW"], {
+ concurrencyHelp:"儲存時會將你的修改合併至最新設定，但其他編輯入口同時儲存仍可能覆蓋變更。請一次只使用一個編輯入口。選項中的超大整數可能被捨入。",
+ configure:"設定", dialogTitle:"Nowledge Mem 設定", settingsIntro:"設定連線、召回與儲存。", saveHelp:"未修改及未列出的選項會保留。", notConfigured:"使用環境變數或本機預設值 · 尚未測試",
+ useDefault:"恢復預設 / 繼承",
+ hostAgent:"宿主 Agent ID", hostAgentHelp:"留空時從用戶端類型推導。", keyActionHelp:"清除儲存值後仍會繼承環境變數，不會停用環境變數。", keyEnv:"API 金鑰環境變數", keyEnvHelp:"僅接受 NMEM_* 名稱；留空使用 NMEM_API_KEY。",
+ filterSection:"儲存與過濾", captureTools:"包含用戶端工具結果", captureCindy:"在人類對話模式清理已識別的 Cindy 包裝",
+ advanced:"進階設定", maxMemories:"最多召回記憶數（1–20）", maxBytes:"召回位元組數（512–32768）", requestTimeout:"請求逾時毫秒（50–5000）", recallBackoff:"召回退避毫秒（100–300000）", gatewayTimeout:"宿主 hook 逾時毫秒（100–10000）", port:"連線測試埠（1024–65535）", insecure:"允許非本機 HTTP（憑據將明文傳輸）", defaultsHelp:"留空時，支援環境繼承的選項使用環境值，其餘使用顯示的預設值。未修改的值保持原樣；宿主逾時可能更早結束請求。", conflict:"設定已在其他位置更改，草稿已保留。請選擇「取消」，再重新開啟設定以載入最新值。", invalidOption:"請檢查輸入及允許範圍。",
+});
+Object.assign(messages.ja, {
+ concurrencyHelp:"保存時に変更を最新の設定に反映しますが、別の編集画面が同時に保存すると上書きされる可能性があります。一度に一つの編集画面を使ってください。非常に大きい整数は丸められる場合があります。",
+ configure:"設定", dialogTitle:"Nowledge Mem の設定", settingsIntro:"接続、検索と保存を設定します。", saveHelp:"変更していない項目と一覧にない項目は保持されます。", notConfigured:"環境変数またはローカルの既定値を使用 · 未テスト",
+ useDefault:"既定値 / 継承に戻す", hostAgent:"ホスト Agent ID", hostAgentHelp:"空欄の場合はハーネスから導出します。", keyActionHelp:"保存値を消すと環境変数にフォールバックします。環境変数は無効になりません。", keyEnv:"API キーの環境変数", keyEnvHelp:"NMEM_* のみ。空欄では NMEM_API_KEY を使用します。",
+ filterSection:"保存とフィルター", captureTools:"クライアントのツール結果を含める", captureCindy:"人間の会話モードで既知の Cindy 包装を整理", advanced:"詳細設定", maxMemories:"記憶の最大数（1–20）", maxBytes:"検索のバイト数（512–32768）", requestTimeout:"リクエスト時間制限 ms（50–5000）", recallBackoff:"検索の再試行待ち ms（100–300000）", gatewayTimeout:"ホスト hook の時間制限 ms（100–10000）", port:"接続テストのポート（1024–65535）", insecure:"ローカル以外の HTTP を許可（認証情報は平文で送信）", defaultsHelp:"空欄は対応する環境変数、それ以外は表示された既定値を使用します。未変更の値は保持されます。ホストの時間制限が先に切れる場合があります。", conflict:"設定が別の場所で変更されました。下書きは保持されています。「キャンセル」を選び、設定を開き直してください。", invalidOption:"入力と範囲を確認してください。",
+});
+Object.assign(messages.de, {
+ concurrencyHelp:"Beim Speichern werden deine Änderungen in die aktuellen Einstellungen übernommen; ein anderer gleichzeitig speichernder Editor kann sie dennoch überschreiben. Bitte nur einen Editor zugleich verwenden. Sehr große Ganzzahlen können gerundet werden.",
+ configure:"Einstellungen", dialogTitle:"Nowledge Mem Einstellungen", settingsIntro:"Verbindung, Abruf und Speichern konfigurieren.", saveHelp:"Unveränderte und nicht aufgeführte Optionen bleiben erhalten.", notConfigured:"Umgebung oder lokaler Standard · noch nicht getestet",
+ useDefault:"Standard / Erben", hostAgent:"Host-Agent-ID", hostAgentHelp:"Leer leitet die Identität aus dem Harness ab.", keyActionHelp:"Nach dem Löschen gilt weiterhin die Umgebungsvariable; sie wird nicht deaktiviert.", keyEnv:"Umgebungsvariable für API-Schlüssel", keyEnvHelp:"Nur NMEM_*; leer verwendet NMEM_API_KEY.",
+ filterSection:"Speichern und filtern", captureTools:"Client-Tool-Ergebnisse einschließen", captureCindy:"Erkannte Cindy-Hüllen im Dialogmodus bereinigen", advanced:"Erweitert", maxMemories:"Maximale Erinnerungen (1–20)", maxBytes:"Abruf-Bytes (512–32768)", requestTimeout:"Anfrage-Timeout ms (50–5000)", recallBackoff:"Abruf-Wartezeit ms (100–300000)", gatewayTimeout:"Host-Hook-Timeout ms (100–10000)", port:"Verbindungstest-Port (1024–65535)", insecure:"HTTP zu fremdem Server erlauben (Zugangsdaten unverschlüsselt)", defaultsHelp:"Leer verwendet die Umgebung, wo unterstützt, sonst den angezeigten Standard. Unveränderte Werte bleiben erhalten. Das Host-Timeout kann früher enden.", conflict:"Die Konfiguration wurde anderswo geändert. Der Entwurf bleibt erhalten. Wähle „Abbrechen“ und öffne die Einstellungen erneut.", invalidOption:"Eingaben und Wertebereiche prüfen.",
+});
+
+
+Object.assign(messages.en, {keySaved:"Saved",keyNotSet:"No saved key",keyRemove:"Remove saved key",keyUndo:"Undo removal",humanOnly:"Only human dialogue",filterHelp:"Exclude tool results from saved conversations.",cindyHelp:"Available when only human dialogue is enabled.",captureToolsHelp:"Used only when the human-dialogue filter is off.",insecureHelp:"Use only on a trusted network."});
+Object.assign(messages.zh, {keySaved:"已保存",keyNotSet:"未保存密钥",keyRemove:"清除已保存的密钥",keyUndo:"撤销清除",humanOnly:"仅保存人类对话",filterHelp:"保存对话时排除工具结果。",cindyHelp:"仅在人类对话模式开启时可用。",captureToolsHelp:"仅在“仅保存人类对话”关闭时生效。",insecureHelp:"仅在可信网络中使用。"});
+Object.assign(messages["zh-TW"], {keySaved:"已儲存",keyNotSet:"未儲存金鑰",keyRemove:"清除已儲存的金鑰",keyUndo:"復原清除",humanOnly:"僅儲存人類對話",filterHelp:"儲存對話時排除工具結果。",cindyHelp:"僅在人類對話模式開啟時可用。",captureToolsHelp:"僅在「僅儲存人類對話」關閉時生效。",insecureHelp:"僅在可信任的網路中使用。"});
+Object.assign(messages.ja, {keySaved:"保存済み",keyNotSet:"保存したキーなし",keyRemove:"保存したキーを削除",keyUndo:"削除を取り消す",humanOnly:"人間の対話のみ",filterHelp:"保存する会話からツール結果を除きます。",cindyHelp:"人間の対話のみが有効なときに使用できます。",captureToolsHelp:"人間の対話のみがオフのときに適用されます。",insecureHelp:"信頼できるネットワークでのみ使用してください。"});
+Object.assign(messages.de, {keySaved:"Gespeichert",keyNotSet:"Kein gespeicherter Schlüssel",keyRemove:"Gespeicherten Schlüssel entfernen",keyUndo:"Entfernen rückgängig",humanOnly:"Nur menschlicher Dialog",filterHelp:"Tool-Ergebnisse aus gespeicherten Gesprächen ausschließen.",cindyHelp:"Nur verfügbar, wenn menschlicher Dialog aktiviert ist.",captureToolsHelp:"Gilt nur, wenn der Filter für menschlichen Dialog aus ist.",insecureHelp:"Nur in einem vertrauenswürdigen Netzwerk verwenden."});
+
+
+Object.assign(messages.en,{recallRemote:"Recall for remote and other gateway keys",recallRemoteHelp:"Requires recall. May share the configured Mem memories and Context Bundle with all such clients. This is not tenant isolation.",captureRemote:"Save remote and other gateway conversations",captureRemoteHelp:"Requires saving conversations. Saves conversations from all such clients to this Mem."});
+Object.assign(messages.zh,{recallRemote:"允许远端和其他网关密钥召回",recallRemoteHelp:"需要开启记忆召回。可能向所有此类客户端提供所配置 Mem 的记忆和 Context Bundle。这不是租户隔离。",captureRemote:"保存远端和其他网关密钥的对话",captureRemoteHelp:"需要开启保存对话。会将所有此类客户端的对话保存到此 Mem。"});
+Object.assign(messages["zh-TW"],{recallRemote:"允許遠端與其他閘道金鑰召回",recallRemoteHelp:"需要開啟記憶召回。可能向所有此類用戶端提供所設定 Mem 的記憶與 Context Bundle。這不是租戶隔離。",captureRemote:"儲存遠端與其他閘道金鑰的對話",captureRemoteHelp:"需要開啟儲存對話。會將所有此類用戶端的對話儲存到此 Mem。"});
+Object.assign(messages.ja,{recallRemote:"リモートと他のゲートウェイキーの検索を許可",recallRemoteHelp:"記憶の検索が必要です。設定した Mem の記憶と Context Bundle を該当する全クライアントに共有する可能性があります。テナント分離ではありません。",captureRemote:"リモートと他のゲートウェイキーの会話を保存",captureRemoteHelp:"会話の保存が必要です。該当する全クライアントの会話をこの Mem に保存します。"});
+Object.assign(messages.de,{recallRemote:"Abruf für entfernte und andere Gateway-Schlüssel",recallRemoteHelp:"Erfordert den Erinnerungsabruf. Kann Erinnerungen und Context Bundle des konfigurierten Mem mit allen solchen Clients teilen. Dies ist keine Mandantentrennung.",captureRemote:"Entfernte und andere Gateway-Gespräche speichern",captureRemoteHelp:"Erfordert das Speichern von Gesprächen. Speichert Gespräche aller solchen Clients in diesem Mem."});
 
 const languageTags = {en: 'en', zh: 'zh-CN', 'zh-TW': 'zh-TW', ja: 'ja-JP', de: 'de-DE'};
 
